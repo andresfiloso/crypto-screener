@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { TrendingUp, TrendingDown } from "lucide-react";
+import { TrendingUp, TrendingDown, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -12,6 +12,10 @@ import {
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { ScanResult, TradeSide } from "@/types/scans";
+
+function tvUrl(symbol: string) {
+  return `https://www.tradingview.com/chart?symbol=BINANCE%3A${symbol}`;
+}
 
 interface ScanCardProps {
   scan: ScanResult;
@@ -78,9 +82,17 @@ export function ScanCard({ scan }: ScanCardProps) {
                     <span className="text-xs text-muted-foreground">
                       Open {idea.side.toUpperCase()}
                     </span>
-                    <Badge variant="secondary" className="font-mono text-xs">
-                      {symbol}
-                    </Badge>
+                    <a
+                      href={tvUrl(symbol)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group flex items-center gap-1"
+                    >
+                      <Badge variant="secondary" className="font-mono text-xs">
+                        {symbol}
+                      </Badge>
+                      <ExternalLink className="size-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </a>
                   </li>
                 ))}
               </ul>
@@ -91,9 +103,18 @@ export function ScanCard({ scan }: ScanCardProps) {
           {!idea && (
             <div className="flex flex-wrap gap-1.5">
               {scan.matches.map((symbol) => (
-                <Badge key={symbol} variant="secondary" className="font-mono">
-                  {symbol}
-                </Badge>
+                <a
+                  key={symbol}
+                  href={tvUrl(symbol)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-center gap-1"
+                >
+                  <Badge variant="secondary" className="font-mono">
+                    {symbol}
+                  </Badge>
+                  <ExternalLink className="size-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                </a>
               ))}
             </div>
           )}

@@ -2,7 +2,7 @@
 
 import { use } from "react";
 import Link from "next/link";
-import { TrendingUp, TrendingDown } from "lucide-react";
+import { TrendingUp, TrendingDown, ExternalLink } from "lucide-react";
 import { useScreenerData } from "@/hooks/use-screener-data";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -195,9 +195,17 @@ export default function ScanDetailPage({ params }: ScanPageProps) {
                     <Card key={sym.symbol}>
                       <CardHeader>
                         <div className="flex items-center justify-between gap-2">
-                          <CardTitle className="font-mono">
-                            {sym.symbol}
-                          </CardTitle>
+                          <a
+                            href={`https://www.tradingview.com/chart?symbol=BINANCE%3A${sym.symbol}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="group flex items-center gap-1.5"
+                          >
+                            <CardTitle className="font-mono">
+                              {sym.symbol}
+                            </CardTitle>
+                            <ExternalLink className="size-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </a>
                           {scan.tradeIdea && (
                             <span
                               className={cn(
