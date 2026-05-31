@@ -91,13 +91,13 @@ export default function DashboardPage() {
             </Link>
             {data && <HealthIndicator feeds={data.health} />}
             <SyncStatus lastFetchedAt={lastFetchedAt} />
-            {/* <button
+            <button
               onClick={play}
               title="Test pulse sound"
               className="inline-flex items-center rounded p-1 text-xs font-medium transition-colors hover:bg-muted text-muted-foreground hover:text-foreground"
             >
               <AudioWaveform className="size-4" />
-            </button> */}
+            </button>
             <button
               onClick={toggleMasterSound}
               title={
