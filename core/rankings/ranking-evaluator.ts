@@ -82,6 +82,7 @@ export function evaluateCombinedRanking(
   return {
     rankingId: ranking.id,
     name: ranking.name,
+    timeframe: ranking.timeframe,
     top: desc.slice(0, limit),
     bottom: asc.slice(0, limit),
   };

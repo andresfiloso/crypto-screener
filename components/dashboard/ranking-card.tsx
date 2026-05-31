@@ -6,8 +6,19 @@ import { Separator } from "@/components/ui/separator";
 import { ExternalLink } from "lucide-react";
 import type { CombinedRankingResult, RankingEntry } from "@/types/scans";
 
-function tvUrl(symbol: string) {
-  return `https://www.tradingview.com/chart?symbol=BINANCE%3A${symbol}`;
+const TV_INTERVAL_MAP: Record<string, string> = {
+  "5m": "5",
+  "15m": "15",
+  "1h": "60",
+  "4h": "240",
+  "1d": "1D",
+  "1w": "1W",
+  "1M": "1M",
+};
+
+function tvUrl(symbol: string, timeframe: string) {
+  const interval = TV_INTERVAL_MAP[timeframe] ?? "60";
+  return `https://www.tradingview.com/chart/?symbol=BINANCE%3A${symbol}&interval=${interval}`;
 }
 
 interface RankingCardProps {
@@ -26,7 +37,15 @@ function rsiStyle(value: number): React.CSSProperties {
   return {};
 }
 
-function EntryRow({ entry, rank }: { entry: RankingEntry; rank: number }) {
+function EntryRow({
+  entry,
+  rank,
+  timeframe,
+}: {
+  entry: RankingEntry;
+  rank: number;
+  timeframe: string;
+}) {
   return (
     <li className="flex items-center justify-between text-sm">
       <div className="flex items-center gap-2">
@@ -34,7 +53,7 @@ function EntryRow({ entry, rank }: { entry: RankingEntry; rank: number }) {
           {rank}.
         </span>
         <a
-          href={tvUrl(entry.symbol)}
+          href={tvUrl(entry.symbol, timeframe)}
           target="_blank"
           rel="noopener noreferrer"
           className="group flex items-center gap-1"
@@ -72,7 +91,12 @@ export function RankingCard({ ranking }: RankingCardProps) {
               </p>
               <ol className="space-y-1.5">
                 {ranking.top.map((entry, idx) => (
-                  <EntryRow key={entry.symbol} entry={entry} rank={idx + 1} />
+                  <EntryRow
+                    key={entry.symbol}
+                    entry={entry}
+                    rank={idx + 1}
+                    timeframe={ranking.timeframe}
+                  />
                 ))}
               </ol>
             </div>
@@ -86,7 +110,12 @@ export function RankingCard({ ranking }: RankingCardProps) {
               </p>
               <ol className="space-y-1.5">
                 {ranking.bottom.map((entry, idx) => (
-                  <EntryRow key={entry.symbol} entry={entry} rank={idx + 1} />
+                  <EntryRow
+                    key={entry.symbol}
+                    entry={entry}
+                    rank={idx + 1}
+                    timeframe={ranking.timeframe}
+                  />
                 ))}
               </ol>
             </div>

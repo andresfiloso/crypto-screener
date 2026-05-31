@@ -57,6 +57,7 @@ export interface CombinedRankingDefinition {
 export interface CombinedRankingResult {
   rankingId: string;
   name: string;
+  timeframe: Timeframe;
   /** Sorted descending — highest values first. */
   top: RankingEntry[];
   /** Sorted ascending — lowest values first. */

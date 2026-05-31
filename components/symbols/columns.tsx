@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { ExternalLink } from "lucide-react";
 
 function tvUrl(symbol: string) {
-  return `https://www.tradingview.com/chart?symbol=BINANCE%3A${symbol}`;
+  return `https://www.tradingview.com/chart/?symbol=BINANCE%3A${symbol}&interval=60`;
 }
 
 // Inline styles avoid Tailwind v4 purge issues for data-driven colors

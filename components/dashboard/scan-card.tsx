@@ -19,8 +19,31 @@ import {
 import { cn } from "@/lib/utils";
 import type { ScanResult, TradeSide } from "@/types/scans";
 
-function tvUrl(symbol: string) {
-  return `https://www.tradingview.com/chart?symbol=BINANCE%3A${symbol}`;
+const TV_INTERVAL_MAP: Record<string, string> = {
+  "5m": "5",
+  "15m": "15",
+  "1h": "60",
+  "4h": "240",
+  "1d": "1D",
+  "1w": "1W",
+  "1M": "1M",
+};
+
+const TIMEFRAME_ORDER = ["5m", "15m", "1h", "4h", "1d", "1w", "1M"];
+
+function getPrimaryInterval(
+  conditions: import("@/types/scans").Condition[],
+): string {
+  const sorted = [...conditions].sort(
+    (a, b) =>
+      TIMEFRAME_ORDER.indexOf(a.timeframe) -
+      TIMEFRAME_ORDER.indexOf(b.timeframe),
+  );
+  return TV_INTERVAL_MAP[sorted[0]?.timeframe ?? "1h"] ?? "60";
+}
+
+function tvUrl(symbol: string, interval: string) {
+  return `https://www.tradingview.com/chart/?symbol=BINANCE%3A${symbol}&interval=${interval}`;
 }
 
 interface ScanCardProps {
@@ -113,7 +136,7 @@ export function ScanCard({ scan, soundEnabled, onToggleSound }: ScanCardProps) {
                       Open {idea.side.toUpperCase()}
                     </span>
                     <a
-                      href={tvUrl(symbol)}
+                      href={tvUrl(symbol, getPrimaryInterval(scan.conditions))}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="group flex items-center gap-1"
@@ -135,7 +158,7 @@ export function ScanCard({ scan, soundEnabled, onToggleSound }: ScanCardProps) {
               {scan.matches.map((symbol) => (
                 <a
                   key={symbol}
-                  href={tvUrl(symbol)}
+                  href={tvUrl(symbol, getPrimaryInterval(scan.conditions))}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group flex items-center gap-1"
