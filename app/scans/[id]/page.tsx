@@ -89,6 +89,31 @@ function TradeIdeaBanner({
   );
 }
 
+const TV_INTERVAL_MAP: Record<string, string> = {
+  "5m": "5",
+  "15m": "15",
+  "1h": "60",
+  "4h": "240",
+  "1d": "1D",
+  "1w": "1W",
+  "1M": "1M",
+};
+
+const TIMEFRAME_ORDER: string[] = ["5m", "15m", "1h", "4h", "1d", "1w", "1M"];
+
+function getPrimaryInterval(conditions: Condition[]): string {
+  const timeframes = conditions.map((c) => c.timeframe);
+  const primary =
+    timeframes.sort(
+      (a, b) => TIMEFRAME_ORDER.indexOf(a) - TIMEFRAME_ORDER.indexOf(b),
+    )[0] ?? "60";
+  return TV_INTERVAL_MAP[primary] ?? "60";
+}
+
+function tradingViewUrl(symbol: string, interval: string): string {
+  return `https://www.tradingview.com/chart/?symbol=BINANCE%3A${symbol}&interval=${interval}`;
+}
+
 function ConditionBadge({ cond }: { cond: Condition }) {
   return (
     <span className="inline-flex items-center gap-1 rounded border px-2 py-0.5 text-xs font-mono">
@@ -196,7 +221,10 @@ export default function ScanDetailPage({ params }: ScanPageProps) {
                       <CardHeader>
                         <div className="flex items-center justify-between gap-2">
                           <a
-                            href={`https://www.tradingview.com/chart?symbol=BINANCE%3A${sym.symbol}`}
+                            href={tradingViewUrl(
+                              sym.symbol,
+                              getPrimaryInterval(scan.conditions),
+                            )}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="group flex items-center gap-1.5"
