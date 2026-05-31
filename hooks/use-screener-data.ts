@@ -27,6 +27,7 @@ export function useScreenerData() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchData();
     const interval = setInterval(fetchData, POLL_INTERVAL_MS);
     return () => clearInterval(interval);

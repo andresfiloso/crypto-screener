@@ -1,5 +1,5 @@
 import type { SymbolState } from "./symbol";
-import type { ScanResult, RankingResult, CombinedRankingResult } from "./scans";
+import type { ScanResult, CombinedRankingResult } from "./scans";
 
 export interface FeedHealth {
   symbol: string;
