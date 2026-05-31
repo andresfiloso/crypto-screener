@@ -14,6 +14,7 @@ export const SCANS: ScanDefinition[] = [
       rationale:
         "RSI overbought on 15m and 1h — look for short entries on rejection",
     },
+    notification: { soundEnabled: true },
   },
   {
     id: "oversold",
@@ -27,6 +28,7 @@ export const SCANS: ScanDefinition[] = [
       side: "long",
       rationale: "RSI oversold on 15m and 1h — look for long entries on bounce",
     },
+    notification: { soundEnabled: true },
   },
   {
     id: "short-opportunity",
@@ -42,6 +44,7 @@ export const SCANS: ScanDefinition[] = [
       rationale:
         "RSI overbought across 15m/1h/4h — high-confidence short setup",
     },
+    notification: { soundEnabled: true },
   },
   {
     id: "long-opportunity",
@@ -56,6 +59,7 @@ export const SCANS: ScanDefinition[] = [
       side: "long",
       rationale: "RSI oversold across 15m/1h/4h — high-confidence long setup",
     },
+    notification: { soundEnabled: true },
   },
   {
     id: "rsi-momentum-up",
@@ -68,6 +72,7 @@ export const SCANS: ScanDefinition[] = [
       side: "short",
       rationale: "Short-term momentum exhaustion — scalp short on 5m",
     },
+    notification: { soundEnabled: true },
   },
   {
     id: "rsi-momentum-down",
@@ -80,6 +85,7 @@ export const SCANS: ScanDefinition[] = [
       side: "long",
       rationale: "Short-term momentum exhaustion — scalp long on 5m",
     },
+    notification: { soundEnabled: true },
   },
   // ── Custom scans ──────────────────────────────────────────────────────────
   {
@@ -98,6 +104,7 @@ export const SCANS: ScanDefinition[] = [
       rationale:
         "RSI 14 and RSI 3 overbought on both 15m and 1h — strong short setup",
     },
+    notification: { soundEnabled: true },
   },
   {
     id: "custom-oversold-rsi14-rsi3",
@@ -115,5 +122,6 @@ export const SCANS: ScanDefinition[] = [
       rationale:
         "RSI 14 and RSI 3 oversold on both 15m and 1h — strong long setup",
     },
+    notification: { soundEnabled: true },
   },
 ];

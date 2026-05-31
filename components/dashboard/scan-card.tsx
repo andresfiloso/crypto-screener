@@ -1,7 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { TrendingUp, TrendingDown, ExternalLink } from "lucide-react";
+import {
+  TrendingUp,
+  TrendingDown,
+  ExternalLink,
+  Volume2,
+  VolumeX,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -19,6 +25,8 @@ function tvUrl(symbol: string) {
 
 interface ScanCardProps {
   scan: ScanResult;
+  soundEnabled: boolean;
+  onToggleSound: () => void;
 }
 
 function SidePill({ side }: { side: TradeSide }) {
@@ -42,7 +50,7 @@ function SidePill({ side }: { side: TradeSide }) {
   );
 }
 
-export function ScanCard({ scan }: ScanCardProps) {
+export function ScanCard({ scan, soundEnabled, onToggleSound }: ScanCardProps) {
   const count = scan.matches.length;
   const idea = scan.tradeIdea;
 
@@ -55,9 +63,31 @@ export function ScanCard({ scan }: ScanCardProps) {
               {scan.name}
             </Link>
           </CardTitle>
-          <Badge variant={count > 0 ? "default" : "outline"}>
-            {count} {count === 1 ? "match" : "matches"}
-          </Badge>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              onClick={onToggleSound}
+              title={
+                soundEnabled
+                  ? "Sound on — click to mute"
+                  : "Sound off — click to enable"
+              }
+              className={cn(
+                "inline-flex items-center rounded p-1 text-xs font-medium transition-colors",
+                soundEnabled
+                  ? "text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+                  : "text-muted-foreground hover:bg-muted",
+              )}
+            >
+              {soundEnabled ? (
+                <Volume2 className="size-3.5" />
+              ) : (
+                <VolumeX className="size-3.5" />
+              )}
+            </button>
+            <Badge variant={count > 0 ? "default" : "outline"}>
+              {count} {count === 1 ? "match" : "matches"}
+            </Badge>
+          </div>
         </div>
         {scan.description && (
           <CardDescription>{scan.description}</CardDescription>

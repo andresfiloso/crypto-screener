@@ -17,6 +17,11 @@ export interface Condition {
   value: number;
 }
 
+export interface ScanNotification {
+  /** Whether to play a sound when new symbols enter this scan. */
+  soundEnabled: boolean;
+}
+
 export interface ScanDefinition {
   id: string;
   name: string;
@@ -26,6 +31,8 @@ export interface ScanDefinition {
   tradeIdea?: TradeIdea;
   /** Optional group tag used to separate scans into dashboard sections. */
   group?: string;
+  /** Default notification settings for this scan. */
+  notification?: ScanNotification;
 }
 
 export interface RankingDefinition {
