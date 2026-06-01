@@ -7,6 +7,7 @@ import {
   useSpring,
   useTransform,
 } from "framer-motion";
+import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 
 interface Spark {
@@ -29,25 +30,29 @@ interface RSIMomentumBarProps {
 }
 
 // Color interpolation based on RSI position
-function getSparkColor(rsi: number): string {
+// isDark=true uses light pastel shades (visible on dark bg); isDark=false uses darker saturated shades (visible on light bg)
+function getSparkColor(rsi: number, isDark = true): string {
   if (rsi <= 30) {
-    // Oversold zone: green shades
     const t = rsi / 30;
-    return lerpColor("#22c55e", "#86efac", t);
+    return isDark
+      ? lerpColor("#22c55e", "#86efac", t)
+      : lerpColor("#15803d", "#16a34a", t);
   }
   if (rsi >= 70) {
-    // Overbought zone: red shades
     const t = (rsi - 70) / 30;
-    return lerpColor("#fca5a5", "#ef4444", t);
+    return isDark
+      ? lerpColor("#fca5a5", "#ef4444", t)
+      : lerpColor("#dc2626", "#b91c1c", t);
   }
-  // Neutral zone: gradient from light green -> orange -> red
   const t = (rsi - 30) / 40;
   if (t < 0.5) {
-    // Light green to orange (30-50)
-    return lerpColor("#a3e635", "#f97316", t * 2);
+    return isDark
+      ? lerpColor("#a3e635", "#f97316", t * 2)
+      : lerpColor("#4d7c0f", "#c2410c", t * 2);
   }
-  // Orange to light red (50-70)
-  return lerpColor("#f97316", "#fca5a5", (t - 0.5) * 2);
+  return isDark
+    ? lerpColor("#f97316", "#fca5a5", (t - 0.5) * 2)
+    : lerpColor("#c2410c", "#9f1239", (t - 0.5) * 2);
 }
 
 function lerpColor(color1: string, color2: string, t: number): string {
@@ -163,6 +168,8 @@ export function RSIMomentumBar({
   showTooltip = true,
   className,
 }: RSIMomentumBarProps) {
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme !== "light";
   const [sparks, setSparks] = useState<Spark[]>([]);
   const sparkIdCounter = useRef(0);
   const barHeight = 12;
@@ -198,7 +205,10 @@ export function RSIMomentumBar({
         const startY = (Math.random() - 0.5) * barHeight;
 
         // Base color from RSI position with slight variation
-        const baseColor = getSparkColor(rsi + (Math.random() - 0.5) * 5);
+        const baseColor = getSparkColor(
+          rsi + (Math.random() - 0.5) * 5,
+          isDark,
+        );
 
         newSparks.push({
           id: sparkIdCounter.current++,
@@ -221,14 +231,14 @@ export function RSIMomentumBar({
     const interval = setInterval(generateSparkBurst, intervalMs);
 
     return () => clearInterval(interval);
-  }, [intensity, rsi, barHeight]);
+  }, [intensity, rsi, barHeight, isDark]);
 
   const removeSpark = useCallback((id: number) => {
     setSparks((prev) => prev.filter((s) => s.id !== id));
   }, []);
 
   // Line color based on RSI position
-  const lineColor = getSparkColor(rsi);
+  const lineColor = getSparkColor(rsi, isDark);
 
   return (
     <div className={cn("relative w-full max-w-md select-none", className)}>
@@ -246,9 +256,12 @@ export function RSIMomentumBar({
           <span
             className={cn(
               "rounded px-2 py-0.5 font-mono text-xs font-medium",
-              zoneInfo.zone === "oversold" && "bg-green-500/20 text-green-400",
-              zoneInfo.zone === "overbought" && "bg-red-500/20 text-red-400",
-              zoneInfo.zone === "neutral" && "bg-slate-500/20 text-slate-400",
+              zoneInfo.zone === "oversold" &&
+                "bg-green-500/20 text-green-700 dark:text-green-400",
+              zoneInfo.zone === "overbought" &&
+                "bg-red-500/20 text-red-700 dark:text-red-400",
+              zoneInfo.zone === "neutral" &&
+                "bg-slate-500/20 text-slate-600 dark:text-slate-400",
             )}
           >
             {zoneInfo.label}
@@ -256,9 +269,12 @@ export function RSIMomentumBar({
           <motion.span
             className={cn(
               "font-mono text-lg font-bold tabular-nums",
-              zoneInfo.zone === "oversold" && "text-green-400",
-              zoneInfo.zone === "overbought" && "text-red-400",
-              zoneInfo.zone === "neutral" && "text-slate-300",
+              zoneInfo.zone === "oversold" &&
+                "text-green-700 dark:text-green-400",
+              zoneInfo.zone === "overbought" &&
+                "text-red-700 dark:text-red-400",
+              zoneInfo.zone === "neutral" &&
+                "text-slate-700 dark:text-slate-300",
             )}
           >
             {displayRsi}
@@ -275,9 +291,9 @@ export function RSIMomentumBar({
         >
           {/* Zone gradients */}
           <div className="absolute inset-0 flex rounded-full overflow-hidden">
-            <div className="h-full w-[30%] bg-gradient-to-r from-green-950/80 via-green-900/50 to-green-900/30" />
-            <div className="h-full w-[40%] bg-gradient-to-r from-slate-800/30 via-slate-700/20 to-slate-800/30" />
-            <div className="h-full w-[30%] bg-gradient-to-r from-red-900/30 via-red-900/50 to-red-950/80" />
+            <div className="h-full w-[30%] bg-gradient-to-r from-green-200/80 via-green-100/50 to-green-100/30 dark:from-green-950/80 dark:via-green-900/50 dark:to-green-900/30" />
+            <div className="h-full w-[40%] bg-gradient-to-r from-slate-200/30 via-slate-100/20 to-slate-200/30 dark:from-slate-800/30 dark:via-slate-700/20 dark:to-slate-800/30" />
+            <div className="h-full w-[30%] bg-gradient-to-r from-red-100/30 via-red-100/50 to-red-200/80 dark:from-red-900/30 dark:via-red-900/50 dark:to-red-950/80" />
           </div>
 
           {/* Zone divider lines */}
@@ -357,8 +373,10 @@ export function RSIMomentumBar({
                 <motion.div
                   className={cn(
                     "font-mono text-sm font-semibold",
-                    zoneInfo.zone === "oversold" && "text-green-400",
-                    zoneInfo.zone === "overbought" && "text-red-400",
+                    zoneInfo.zone === "oversold" &&
+                      "text-green-700 dark:text-green-400",
+                    zoneInfo.zone === "overbought" &&
+                      "text-red-700 dark:text-red-400",
                     zoneInfo.zone === "neutral" && "text-foreground",
                   )}
                 >
