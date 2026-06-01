@@ -40,6 +40,54 @@ function emaStyle(price: number, ema: number | undefined): React.CSSProperties {
     : { color: "#ef4444" }; // red-500  — price below EMA
 }
 
+function emaColumn(
+  tf: Timeframe,
+  period: 20 | 50 | 200,
+): ColumnDef<SymbolState> {
+  const key = `EMA_${period}` as "EMA_20" | "EMA_50" | "EMA_200";
+  return {
+    id: `ema${period}_${tf}`,
+    header: `EMA ${period} (${tf})`,
+    accessorFn: (row) => row.timeframes[tf]?.indicators?.[key],
+    cell: ({ row }) => {
+      const val = row.original.timeframes[tf]?.indicators?.[key];
+      return (
+        <span
+          className="tabular-nums"
+          style={emaStyle(row.original.price, val)}
+        >
+          {fmt(val)}
+        </span>
+      );
+    },
+  };
+}
+
+function macdColumn(tf: Timeframe): ColumnDef<SymbolState> {
+  return {
+    id: `macd_${tf}`,
+    header: `MACD Hist (${tf})`,
+    accessorFn: (row) => row.timeframes[tf]?.indicators?.MACD?.histogram,
+    cell: ({ row }) => {
+      const val = row.original.timeframes[tf]?.indicators?.MACD?.histogram;
+      const color =
+        val !== undefined && val > 0
+          ? "#22c55e"
+          : val !== undefined && val < 0
+            ? "#ef4444"
+            : undefined;
+      return (
+        <span
+          className="tabular-nums text-muted-foreground"
+          style={color ? { color } : undefined}
+        >
+          {fmt(val, 4)}
+        </span>
+      );
+    },
+  };
+}
+
 function fmtPrice(value: number): string {
   if (value >= 1000)
     return value.toLocaleString("en-US", { maximumFractionDigits: 2 });
@@ -111,73 +159,29 @@ export const columns: ColumnDef<SymbolState>[] = [
     cell: rsiCell("4h"),
   },
   {
-    id: "ema20",
-    header: "EMA 20",
-    accessorFn: (row) => row.timeframes["1h"]?.indicators?.EMA_20,
-    cell: ({ row }) => {
-      const val = row.original.timeframes["1h"]?.indicators?.EMA_20;
-      return (
-        <span
-          className="tabular-nums"
-          style={emaStyle(row.original.price, val)}
-        >
-          {fmt(val)}
-        </span>
-      );
-    },
+    id: "rsi_1d",
+    header: "RSI 1d",
+    accessorFn: (row) => row.timeframes["1d"]?.indicators?.RSI_14,
+    cell: rsiCell("1d"),
   },
-  {
-    id: "ema50",
-    header: "EMA 50",
-    accessorFn: (row) => row.timeframes["1h"]?.indicators?.EMA_50,
-    cell: ({ row }) => {
-      const val = row.original.timeframes["1h"]?.indicators?.EMA_50;
-      return (
-        <span
-          className="tabular-nums"
-          style={emaStyle(row.original.price, val)}
-        >
-          {fmt(val)}
-        </span>
-      );
-    },
-  },
-  {
-    id: "ema200",
-    header: "EMA 200",
-    accessorFn: (row) => row.timeframes["1h"]?.indicators?.EMA_200,
-    cell: ({ row }) => {
-      const val = row.original.timeframes["1h"]?.indicators?.EMA_200;
-      return (
-        <span
-          className="tabular-nums"
-          style={emaStyle(row.original.price, val)}
-        >
-          {fmt(val)}
-        </span>
-      );
-    },
-  },
-  {
-    id: "macd_histogram",
-    header: "MACD Hist",
-    accessorFn: (row) => row.timeframes["1h"]?.indicators?.MACD?.histogram,
-    cell: ({ row }) => {
-      const val = row.original.timeframes["1h"]?.indicators?.MACD?.histogram;
-      const color =
-        val !== undefined && val > 0
-          ? "#22c55e"
-          : val !== undefined && val < 0
-            ? "#ef4444"
-            : undefined;
-      return (
-        <span
-          className="tabular-nums text-muted-foreground"
-          style={color ? { color } : undefined}
-        >
-          {fmt(val, 4)}
-        </span>
-      );
-    },
-  },
+  emaColumn("5m", 20),
+  emaColumn("5m", 50),
+  emaColumn("5m", 200),
+  emaColumn("15m", 20),
+  emaColumn("15m", 50),
+  emaColumn("15m", 200),
+  emaColumn("1h", 20),
+  emaColumn("1h", 50),
+  emaColumn("1h", 200),
+  emaColumn("4h", 20),
+  emaColumn("4h", 50),
+  emaColumn("4h", 200),
+  emaColumn("1d", 20),
+  emaColumn("1d", 50),
+  emaColumn("1d", 200),
+  macdColumn("5m"),
+  macdColumn("15m"),
+  macdColumn("1h"),
+  macdColumn("4h"),
+  macdColumn("1d"),
 ];
