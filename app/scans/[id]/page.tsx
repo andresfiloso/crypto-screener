@@ -1,10 +1,20 @@
 "use client";
 
-import { use } from "react";
+import { use, useState } from "react";
 import Link from "next/link";
-import { TrendingUp, TrendingDown, ExternalLink } from "lucide-react";
+import {
+  TrendingUp,
+  TrendingDown,
+  ExternalLink,
+  Activity,
+  Plus,
+  Check,
+} from "lucide-react";
 import { useScreenerData } from "@/hooks/use-screener-data";
+import { useMonitor } from "@/hooks/use-monitor";
+import { AddToMonitorDialog } from "@/components/monitor/add-to-monitor-dialog";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardHeader,
@@ -129,6 +139,8 @@ export default function ScanDetailPage({ params }: ScanPageProps) {
   // params is a Promise in Next.js 16 — must be unwrapped with `use()`
   const { id } = use(params);
   const { data, loading, error } = useScreenerData();
+  const { add, isMonitored } = useMonitor();
+  const [monitorTarget, setMonitorTarget] = useState<SymbolState | null>(null);
 
   const scan: ScanResult | undefined = data?.scans.find((s) => s.scanId === id);
 
@@ -136,6 +148,10 @@ export default function ScanDetailPage({ params }: ScanPageProps) {
     scan && data
       ? data.symbols.filter((s) => scan.matches.includes(s.symbol))
       : [];
+
+  const scanTimeframes: Timeframe[] = scan
+    ? [...new Set(scan.conditions.map((c) => c.timeframe))]
+    : [];
 
   return (
     <div className="min-h-screen bg-background">
@@ -146,6 +162,14 @@ export default function ScanDetailPage({ params }: ScanPageProps) {
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             ← Dashboard
+          </Link>
+          <span className="text-muted-foreground">/</span>
+          <Link
+            href="/monitor"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+          >
+            <Activity className="size-3.5" />
+            Monitor
           </Link>
           {scan ? (
             <h1 className="text-lg font-semibold tracking-tight">
@@ -259,7 +283,7 @@ export default function ScanDetailPage({ params }: ScanPageProps) {
                           })}
                         </CardDescription>
                       </CardHeader>
-                      <CardContent>
+                      <CardContent className="space-y-3">
                         <ul className="space-y-1 text-sm">
                           {scan.conditions.map((cond, i) => (
                             <li key={i} className="flex justify-between">
@@ -276,6 +300,28 @@ export default function ScanDetailPage({ params }: ScanPageProps) {
                             </li>
                           ))}
                         </ul>
+                        {scan.tradeIdea && (
+                          <Button
+                            size="sm"
+                            variant={
+                              isMonitored(sym.symbol) ? "secondary" : "outline"
+                            }
+                            className="w-full gap-1.5"
+                            onClick={() =>
+                              !isMonitored(sym.symbol) && setMonitorTarget(sym)
+                            }
+                          >
+                            {isMonitored(sym.symbol) ? (
+                              <>
+                                <Check className="size-3.5" /> Monitoring
+                              </>
+                            ) : (
+                              <>
+                                <Plus className="size-3.5" /> Add to Monitor
+                              </>
+                            )}
+                          </Button>
+                        )}
                       </CardContent>
                     </Card>
                   ))}
@@ -285,6 +331,23 @@ export default function ScanDetailPage({ params }: ScanPageProps) {
           </>
         )}
       </main>
+
+      {monitorTarget && scan?.tradeIdea && (
+        <AddToMonitorDialog
+          open={!!monitorTarget}
+          onOpenChange={(open) => !open && setMonitorTarget(null)}
+          symbol={monitorTarget.symbol}
+          side={scan.tradeIdea.side}
+          currentPrice={monitorTarget.price}
+          scanId={scan.scanId}
+          scanName={scan.name}
+          suggestedTimeframes={scanTimeframes}
+          onConfirm={(entry) => {
+            add(entry);
+            setMonitorTarget(null);
+          }}
+        />
+      )}
     </div>
   );
 }

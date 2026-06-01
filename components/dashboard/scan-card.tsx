@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import {
   TrendingUp,
@@ -7,6 +8,8 @@ import {
   ExternalLink,
   Volume2,
   VolumeX,
+  Plus,
+  Check,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -17,7 +20,11 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { useMonitor } from "@/hooks/use-monitor";
+import { AddToMonitorDialog } from "@/components/monitor/add-to-monitor-dialog";
 import type { ScanResult, TradeSide } from "@/types/scans";
+import type { SymbolState } from "@/types/symbol";
+import type { Timeframe } from "@/types/candle";
 
 const TV_INTERVAL_MAP: Record<string, string> = {
   "5m": "5",
@@ -50,6 +57,8 @@ interface ScanCardProps {
   scan: ScanResult;
   soundEnabled: boolean;
   onToggleSound: () => void;
+  symbols?: SymbolState[];
+  newSymbols?: Set<string>;
 }
 
 function SidePill({ side }: { side: TradeSide }) {
@@ -73,9 +82,25 @@ function SidePill({ side }: { side: TradeSide }) {
   );
 }
 
-export function ScanCard({ scan, soundEnabled, onToggleSound }: ScanCardProps) {
+export function ScanCard({
+  scan,
+  soundEnabled,
+  onToggleSound,
+  symbols = [],
+  newSymbols,
+}: ScanCardProps) {
   const count = scan.matches.length;
   const idea = scan.tradeIdea;
+  const { add, isMonitored } = useMonitor();
+  const [dialogSymbol, setDialogSymbol] = useState<string | null>(null);
+
+  const scanTimeframes: Timeframe[] = [
+    ...new Set(scan.conditions.map((c) => c.timeframe)),
+  ];
+
+  const dialogSymbolState = dialogSymbol
+    ? symbols.find((s) => s.symbol === dialogSymbol)
+    : null;
 
   return (
     <Card>
@@ -141,11 +166,42 @@ export function ScanCard({ scan, soundEnabled, onToggleSound }: ScanCardProps) {
                       rel="noopener noreferrer"
                       className="group flex items-center gap-1"
                     >
-                      <Badge variant="secondary" className="font-mono text-xs">
+                      <Badge
+                        variant="secondary"
+                        className={cn(
+                          "font-mono text-xs",
+                          newSymbols?.has(symbol) &&
+                            "bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-300 ring-1 ring-amber-400/50",
+                        )}
+                      >
                         {symbol}
                       </Badge>
                       <ExternalLink className="size-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                     </a>
+                    <button
+                      onClick={() =>
+                        isMonitored(symbol)
+                          ? undefined
+                          : setDialogSymbol(symbol)
+                      }
+                      title={
+                        isMonitored(symbol)
+                          ? "Already monitoring"
+                          : "Add to Monitor"
+                      }
+                      className={cn(
+                        "inline-flex items-center rounded p-0.5 transition-colors",
+                        isMonitored(symbol)
+                          ? "text-emerald-500 cursor-default"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                      )}
+                    >
+                      {isMonitored(symbol) ? (
+                        <Check className="size-3" />
+                      ) : (
+                        <Plus className="size-3" />
+                      )}
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -163,7 +219,14 @@ export function ScanCard({ scan, soundEnabled, onToggleSound }: ScanCardProps) {
                   rel="noopener noreferrer"
                   className="group flex items-center gap-1"
                 >
-                  <Badge variant="secondary" className="font-mono">
+                  <Badge
+                    variant="secondary"
+                    className={cn(
+                      "font-mono",
+                      newSymbols?.has(symbol) &&
+                        "bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-300 ring-1 ring-amber-400/50",
+                    )}
+                  >
                     {symbol}
                   </Badge>
                   <ExternalLink className="size-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -172,6 +235,23 @@ export function ScanCard({ scan, soundEnabled, onToggleSound }: ScanCardProps) {
             </div>
           )}
         </CardContent>
+      )}
+
+      {dialogSymbol && idea && (
+        <AddToMonitorDialog
+          open={!!dialogSymbol}
+          onOpenChange={(open) => !open && setDialogSymbol(null)}
+          symbol={dialogSymbol}
+          side={idea.side}
+          currentPrice={dialogSymbolState?.price ?? 0}
+          scanId={scan.scanId}
+          scanName={scan.name}
+          suggestedTimeframes={scanTimeframes}
+          onConfirm={(entry) => {
+            add(entry);
+            setDialogSymbol(null);
+          }}
+        />
       )}
     </Card>
   );

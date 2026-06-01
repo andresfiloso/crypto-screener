@@ -33,6 +33,13 @@ function fmt(value: number | undefined, decimals = 2): string {
   return value.toFixed(decimals);
 }
 
+function emaStyle(price: number, ema: number | undefined): React.CSSProperties {
+  if (ema === undefined) return {};
+  return price > ema
+    ? { color: "#22c55e" } // green-500 — price above EMA
+    : { color: "#ef4444" }; // red-500  — price below EMA
+}
+
 function fmtPrice(value: number): string {
   if (value >= 1000)
     return value.toLocaleString("en-US", { maximumFractionDigits: 2 });
@@ -107,31 +114,49 @@ export const columns: ColumnDef<SymbolState>[] = [
     id: "ema20",
     header: "EMA 20",
     accessorFn: (row) => row.timeframes["1h"]?.indicators?.EMA_20,
-    cell: ({ row }) => (
-      <span className="tabular-nums text-muted-foreground">
-        {fmt(row.original.timeframes["1h"]?.indicators?.EMA_20)}
-      </span>
-    ),
+    cell: ({ row }) => {
+      const val = row.original.timeframes["1h"]?.indicators?.EMA_20;
+      return (
+        <span
+          className="tabular-nums"
+          style={emaStyle(row.original.price, val)}
+        >
+          {fmt(val)}
+        </span>
+      );
+    },
   },
   {
     id: "ema50",
     header: "EMA 50",
     accessorFn: (row) => row.timeframes["1h"]?.indicators?.EMA_50,
-    cell: ({ row }) => (
-      <span className="tabular-nums text-muted-foreground">
-        {fmt(row.original.timeframes["1h"]?.indicators?.EMA_50)}
-      </span>
-    ),
+    cell: ({ row }) => {
+      const val = row.original.timeframes["1h"]?.indicators?.EMA_50;
+      return (
+        <span
+          className="tabular-nums"
+          style={emaStyle(row.original.price, val)}
+        >
+          {fmt(val)}
+        </span>
+      );
+    },
   },
   {
     id: "ema200",
     header: "EMA 200",
     accessorFn: (row) => row.timeframes["1h"]?.indicators?.EMA_200,
-    cell: ({ row }) => (
-      <span className="tabular-nums text-muted-foreground">
-        {fmt(row.original.timeframes["1h"]?.indicators?.EMA_200)}
-      </span>
-    ),
+    cell: ({ row }) => {
+      const val = row.original.timeframes["1h"]?.indicators?.EMA_200;
+      return (
+        <span
+          className="tabular-nums"
+          style={emaStyle(row.original.price, val)}
+        >
+          {fmt(val)}
+        </span>
+      );
+    },
   },
   {
     id: "macd_histogram",

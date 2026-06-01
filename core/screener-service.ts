@@ -133,7 +133,10 @@ export class ScreenerService {
             this.health.recordUpdate(symbol, timeframe);
             this.health.markConnected(symbol, timeframe);
 
-            if (!isFinal) return; // ignore partial candles
+            // Always update the live price from every tick, even partial candles
+            this.store.updatePrice(symbol, candle.close);
+
+            if (!isFinal) return; // skip indicator recalc for partial candles
 
             this.store.appendCandle(symbol, timeframe, candle);
             this.refreshResults();
