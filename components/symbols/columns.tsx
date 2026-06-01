@@ -5,6 +5,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import type { SymbolState } from "@/types/symbol";
 import type { Timeframe } from "@/types/candle";
 import { Badge } from "@/components/ui/badge";
+import { NumberPrice } from "@/components/ui/number-price";
 import { ExternalLink } from "lucide-react";
 
 function tvUrl(symbol: string) {
@@ -56,7 +57,14 @@ function emaColumn(
           className="tabular-nums"
           style={emaStyle(row.original.price, val)}
         >
-          {fmt(val)}
+          <NumberPrice
+            value={val}
+            fallback="—"
+            formatOptions={{
+              maximumFractionDigits:
+                val !== undefined ? (val >= 1000 ? 2 : val >= 1 ? 4 : 6) : 4,
+            }}
+          />
         </span>
       );
     },
@@ -86,13 +94,6 @@ function macdColumn(tf: Timeframe): ColumnDef<SymbolState> {
       );
     },
   };
-}
-
-function fmtPrice(value: number): string {
-  if (value >= 1000)
-    return value.toLocaleString("en-US", { maximumFractionDigits: 2 });
-  if (value >= 1) return value.toFixed(4);
-  return value.toFixed(6);
 }
 
 function rsiCell(tf: Timeframe) {
@@ -129,9 +130,14 @@ export const columns: ColumnDef<SymbolState>[] = [
     accessorKey: "price",
     header: "Price",
     cell: ({ row }) => (
-      <span className="tabular-nums font-medium">
-        {fmtPrice(row.original.price)}
-      </span>
+      <NumberPrice
+        value={row.original.price}
+        className="tabular-nums font-medium"
+        formatOptions={{
+          maximumFractionDigits:
+            row.original.price >= 1000 ? 2 : row.original.price >= 1 ? 4 : 6,
+        }}
+      />
     ),
   },
   {

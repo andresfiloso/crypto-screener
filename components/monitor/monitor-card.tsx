@@ -19,6 +19,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { NumberPrice } from "@/components/ui/number-price";
 import { ACTIVE_TIMEFRAMES } from "@/config/timeframes";
 import type { MonitorEntry } from "@/types/monitor";
 import type { SymbolState } from "@/types/symbol";
@@ -183,9 +184,10 @@ export function MonitorCard({
                   Entry
                 </div>
                 <div className="font-mono text-sm font-medium tabular-nums">
-                  {entry.entryPrice.toLocaleString("en-US", {
-                    maximumFractionDigits: 4,
-                  })}
+                  <NumberPrice
+                    value={entry.entryPrice}
+                    formatOptions={{ maximumFractionDigits: 4 }}
+                  />
                 </div>
               </div>
               <div>
@@ -193,11 +195,11 @@ export function MonitorCard({
                   Current
                 </div>
                 <div className="font-mono text-sm font-medium tabular-nums">
-                  {currentPrice !== null
-                    ? currentPrice.toLocaleString("en-US", {
-                        maximumFractionDigits: 4,
-                      })
-                    : "—"}
+                  <NumberPrice
+                    value={currentPrice}
+                    fallback="—"
+                    formatOptions={{ maximumFractionDigits: 4 }}
+                  />
                 </div>
               </div>
               <div>
@@ -242,7 +244,12 @@ export function MonitorCard({
                 <span className="text-xs opacity-70">·</span>
                 <span className="tabular-nums">
                   {isProfitable ? "+" : ""}
-                  {pnlData.usdt.toFixed(2)} USDT
+                  <NumberPrice
+                    value={pnlData.usdt}
+                    fallback="—"
+                    formatOptions={{ maximumFractionDigits: 2 }}
+                  />{" "}
+                  USDT
                 </span>
               </div>
             )}
@@ -257,9 +264,17 @@ export function MonitorCard({
             >
               <span>Liq. price</span>
               <span className="font-mono tabular-nums">
-                {liqPrice !== null
-                  ? `${liqPrice.toLocaleString("en-US", { maximumFractionDigits: 4 })}${isNearLiq ? " ⚠" : ""}`
-                  : "N/A"}
+                {liqPrice !== null ? (
+                  <>
+                    <NumberPrice
+                      value={liqPrice}
+                      formatOptions={{ maximumFractionDigits: 4 }}
+                    />
+                    {isNearLiq ? " ⚠" : ""}
+                  </>
+                ) : (
+                  "N/A"
+                )}
               </span>
             </div>
           </div>

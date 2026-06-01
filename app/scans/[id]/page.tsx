@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useState, type ReactNode } from "react";
 import Link from "next/link";
 import {
   TrendingUp,
@@ -22,6 +22,7 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
+import { NumberPrice } from "@/components/ui/number-price";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import type { SymbolState } from "@/types/symbol";
@@ -36,7 +37,7 @@ function getIndicatorValue(
   symbol: SymbolState,
   timeframe: Timeframe,
   indicator: string,
-): string {
+): ReactNode {
   const ind = symbol.timeframes[timeframe]?.indicators;
   if (!ind) return "—";
   if (indicator.startsWith("MACD.")) {
@@ -44,7 +45,20 @@ function getIndicatorValue(
     return ind.MACD?.[sub]?.toFixed(4) ?? "—";
   }
   const val = ind[indicator as keyof typeof ind];
-  if (typeof val === "number") return val.toFixed(2);
+  if (typeof val === "number") {
+    if (indicator.startsWith("EMA")) {
+      return (
+        <NumberPrice
+          value={val}
+          fallback="—"
+          formatOptions={{
+            maximumFractionDigits: val >= 1000 ? 2 : val >= 1 ? 4 : 6,
+          }}
+        />
+      );
+    }
+    return val.toFixed(2);
+  }
   return "—";
 }
 
@@ -278,9 +292,10 @@ export default function ScanDetailPage({ params }: ScanPageProps) {
                         </div>
                         <CardDescription>
                           Price:{" "}
-                          {sym.price.toLocaleString("en-US", {
-                            maximumFractionDigits: 4,
-                          })}
+                          <NumberPrice
+                            value={sym.price}
+                            formatOptions={{ maximumFractionDigits: 4 }}
+                          />
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-3">

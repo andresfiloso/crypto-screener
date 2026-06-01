@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { NumberPrice } from "@/components/ui/number-price";
 import { cn } from "@/lib/utils";
 import { TrendingUp, TrendingDown } from "lucide-react";
 
@@ -224,11 +225,11 @@ export function AddToMonitorDialog({
                   liqPrice !== null ? "text-orange-500" : "text-foreground",
                 )}
               >
-                {liqPrice !== null
-                  ? liqPrice.toLocaleString("en-US", {
-                      maximumFractionDigits: 4,
-                    })
-                  : "N/A"}
+                <NumberPrice
+                  value={liqPrice}
+                  fallback="N/A"
+                  formatOptions={{ maximumFractionDigits: 4 }}
+                />
               </span>
             </div>
           </div>
