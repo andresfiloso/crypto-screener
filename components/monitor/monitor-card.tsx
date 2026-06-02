@@ -40,13 +40,13 @@ function pnl(
 ) {
   const positionSize = margin * leverage;
   const baseQty = positionSize / entryPrice;
-  const rawPct =
+  const rawPriceMove =
     side === "long"
       ? (currentPrice - entryPrice) / entryPrice
       : (entryPrice - currentPrice) / entryPrice;
   const pnlUsdt =
     baseQty * (currentPrice - entryPrice) * (side === "long" ? 1 : -1);
-  return { pct: rawPct * 100, usdt: pnlUsdt };
+  return { pct: margin ? (pnlUsdt / margin) * 100 : 0, usdt: pnlUsdt };
 }
 
 /** Simplified isolated-margin liquidation price (ignores maintenance margin). */
