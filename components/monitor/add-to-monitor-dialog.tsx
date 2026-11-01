@@ -18,12 +18,19 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { NumberPrice } from "@/components/ui/number-price";
 import { cn } from "@/lib/utils";
+import {
+  DEFAULT_MMR,
+  liquidationPrice,
+  positionQty,
+} from "@/lib/position-math";
 import { TrendingUp, TrendingDown } from "lucide-react";
 
 interface InitialValues {
   entryPrice: number;
   margin: number;
   leverage: number;
+  quantity?: number;
+  maintenanceMarginRate?: number;
   timeframes: Timeframe[];
 }
 
@@ -67,6 +74,12 @@ export function AddToMonitorDialog({
   const [leverage, setLeverage] = useState(
     (initialValues?.leverage ?? 1).toString(),
   );
+  const [quantity, setQuantity] = useState(
+    initialValues?.quantity ? initialValues.quantity.toString() : "",
+  );
+  const [mmr, setMmr] = useState(
+    ((initialValues?.maintenanceMarginRate ?? DEFAULT_MMR) * 100).toString(),
+  );
   const [selectedTimeframes, setSelectedTimeframes] = useState<Timeframe[]>(
     initialValues?.timeframes ?? defaultTimeframes,
   );
@@ -77,6 +90,10 @@ export function AddToMonitorDialog({
     setEntryPrice((initialValues?.entryPrice ?? currentPrice).toString());
     setMargin(initialValues?.margin ? initialValues.margin.toString() : "");
     setLeverage((initialValues?.leverage ?? 1).toString());
+    setQuantity(initialValues?.quantity ? initialValues.quantity.toString() : "");
+    setMmr(
+      ((initialValues?.maintenanceMarginRate ?? DEFAULT_MMR) * 100).toString(),
+    );
     setSelectedTimeframes(initialValues?.timeframes ?? defaultTimeframes);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
@@ -87,26 +104,29 @@ export function AddToMonitorDialog({
   const parsedLev = parseFloat(leverage);
   const parsedMargin = parseFloat(margin);
 
+  const parsedQty = parseFloat(quantity);
+  const parsedMmr = parseFloat(mmr) / 100;
+  const validQty = !isNaN(parsedQty) && parsedQty > 0;
+  const validMargin = !isNaN(parsedMargin) && parsedMargin > 0;
+  const validLev = !isNaN(parsedLev) && parsedLev >= 1;
+  const validEntry = !isNaN(parsedEntry) && parsedEntry > 0;
+
+  const draft = {
+    entryPrice: parsedEntry,
+    usdtQuantity: parsedMargin,
+    leverage: parsedLev,
+    quantity: validQty ? parsedQty : undefined,
+  };
+
   const positionSize =
-    !isNaN(parsedMargin) &&
-    parsedMargin > 0 &&
-    !isNaN(parsedLev) &&
-    parsedLev >= 1
-      ? parsedMargin * parsedLev
+    validEntry && validMargin && validLev
+      ? positionQty(draft) * parsedEntry
       : null;
 
-  const liqPrice = (() => {
-    if (
-      isNaN(parsedEntry) ||
-      parsedEntry <= 0 ||
-      isNaN(parsedLev) ||
-      parsedLev <= 1
-    )
-      return null;
-    return isLong
-      ? parsedEntry * (1 - 1 / parsedLev)
-      : parsedEntry * (1 + 1 / parsedLev);
-  })();
+  const liqPrice =
+    validEntry && validMargin && validLev && parsedMmr >= 0
+      ? liquidationPrice(side, draft, parsedMmr)
+      : null;
 
   function toggleTimeframe(tf: Timeframe) {
     setSelectedTimeframes((prev) =>
@@ -129,6 +149,8 @@ export function AddToMonitorDialog({
       entryPrice: parsedEntry,
       usdtQuantity: parsedMargin,
       leverage: parsedLev,
+      quantity: validQty ? parsedQty : undefined,
+      maintenanceMarginRate: parsedMmr,
       timeframes: selectedTimeframes,
       addedAt: Date.now(),
     };
@@ -179,7 +201,7 @@ export function AddToMonitorDialog({
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="margin">Margin (USDT)</Label>
+              <Label htmlFor="margin">Margin balance (USDT)</Label>
               <Input
                 id="margin"
                 type="number"
@@ -202,6 +224,34 @@ export function AddToMonitorDialog({
                 placeholder="1"
                 value={leverage}
                 onChange={(e) => setLeverage(e.target.value)}
+                className="font-mono"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="quantity">Quantity (optional)</Label>
+              <Input
+                id="quantity"
+                type="number"
+                min="0"
+                step="any"
+                placeholder="margin × lev / entry"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                className="font-mono"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="mmr">Maint. margin (%)</Label>
+              <Input
+                id="mmr"
+                type="number"
+                min="0"
+                step="any"
+                value={mmr}
+                onChange={(e) => setMmr(e.target.value)}
                 className="font-mono"
               />
             </div>

@@ -20,6 +20,11 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { NumberPrice } from "@/components/ui/number-price";
+import {
+  liquidationPrice,
+  positionQty,
+  unrealizedPnl,
+} from "@/lib/position-math";
 import { ACTIVE_TIMEFRAMES } from "@/config/timeframes";
 import type { MonitorEntry } from "@/types/monitor";
 import type { SymbolState } from "@/types/symbol";
@@ -29,36 +34,6 @@ interface MonitorCardProps {
   symbolState?: SymbolState;
   onRemove: () => void;
   onUpdate: (entry: MonitorEntry) => void;
-}
-
-function pnl(
-  side: MonitorEntry["side"],
-  entryPrice: number,
-  currentPrice: number,
-  margin: number,
-  leverage: number,
-) {
-  const positionSize = margin * leverage;
-  const baseQty = positionSize / entryPrice;
-  const rawPriceMove =
-    side === "long"
-      ? (currentPrice - entryPrice) / entryPrice
-      : (entryPrice - currentPrice) / entryPrice;
-  const pnlUsdt =
-    baseQty * (currentPrice - entryPrice) * (side === "long" ? 1 : -1);
-  return { pct: margin ? (pnlUsdt / margin) * 100 : 0, usdt: pnlUsdt };
-}
-
-/** Simplified isolated-margin liquidation price (ignores maintenance margin). */
-function calcLiqPrice(
-  side: MonitorEntry["side"],
-  entryPrice: number,
-  leverage: number,
-) {
-  if (leverage <= 1) return null;
-  return side === "long"
-    ? entryPrice * (1 - 1 / leverage)
-    : entryPrice * (1 + 1 / leverage);
 }
 
 const TV_INTERVAL_MAP: Record<string, string> = {
@@ -79,7 +54,11 @@ export function MonitorCard({
 
   const currentPrice = symbolState?.price ?? null;
   const isLong = entry.side === "long";
-  const liqPrice = calcLiqPrice(entry.side, entry.entryPrice, entry.leverage);
+  const liqPrice = liquidationPrice(
+    entry.side,
+    entry,
+    entry.maintenanceMarginRate,
+  );
 
   // Warn when current price is within 10% of liquidation
   const liqProximityPct =
@@ -90,13 +69,7 @@ export function MonitorCard({
 
   const pnlData =
     currentPrice !== null
-      ? pnl(
-          entry.side,
-          entry.entryPrice,
-          currentPrice,
-          entry.usdtQuantity,
-          entry.leverage,
-        )
+      ? unrealizedPnl(entry.side, entry, currentPrice)
       : null;
 
   const isProfitable = (pnlData?.pct ?? 0) >= 0;
@@ -219,7 +192,7 @@ export function MonitorCard({
                 Position{" "}
                 <span className="font-mono font-medium text-foreground">
                   $
-                  {(entry.usdtQuantity * entry.leverage).toLocaleString(
+                  {(positionQty(entry) * entry.entryPrice).toLocaleString(
                     "en-US",
                     { maximumFractionDigits: 0 },
                   )}
@@ -317,6 +290,8 @@ export function MonitorCard({
           entryPrice: entry.entryPrice,
           margin: entry.usdtQuantity,
           leverage: entry.leverage,
+          quantity: entry.quantity,
+          maintenanceMarginRate: entry.maintenanceMarginRate,
           timeframes: entry.timeframes,
         }}
         onConfirm={(updated) =>

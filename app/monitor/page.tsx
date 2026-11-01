@@ -6,11 +6,10 @@ import { useMonitor } from "@/hooks/use-monitor";
 import { useScreenerData } from "@/hooks/use-screener-data";
 import { MonitorCard } from "@/components/monitor/monitor-card";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { SyncStatus } from "@/components/dashboard/sync-status";
 
 export default function MonitorPage() {
   const { entries, remove, update } = useMonitor();
-  const { data, lastFetchedAt } = useScreenerData();
+  const { data } = useScreenerData();
 
   function findSymbolState(symbol: string) {
     return data?.symbols.find((s) => s.symbol === symbol);
@@ -38,7 +37,6 @@ export default function MonitorPage() {
             )}
           </div>
           <div className="flex items-center gap-3">
-            {lastFetchedAt && <SyncStatus lastFetchedAt={lastFetchedAt} />}
             <ThemeToggle />
           </div>
         </div>

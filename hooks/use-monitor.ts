@@ -1,43 +1,33 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { monitorRepository } from "@/lib/monitor-repository";
+import { useCallback } from "react";
+import {
+  removeMonitorEntry,
+  upsertMonitorEntry,
+  useMonitorEntries,
+} from "@/lib/monitor-repository";
+import {
+  addMonitorWidgetToActive,
+  removeMonitorWidgets,
+} from "@/lib/dashboards-store";
 import type { MonitorEntry } from "@/types/monitor";
 
 export function useMonitor() {
-  const [entries, setEntries] = useState<MonitorEntry[]>([]);
+  const entries = useMonitorEntries();
 
-  const refresh = useCallback(() => {
-    setEntries(monitorRepository.getAll());
+  const add = useCallback((entry: MonitorEntry) => {
+    upsertMonitorEntry(entry);
+    addMonitorWidgetToActive(entry.symbol);
   }, []);
 
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
+  const remove = useCallback((symbol: string) => {
+    removeMonitorEntry(symbol);
+    removeMonitorWidgets(symbol);
+  }, []);
 
-  const add = useCallback(
-    (entry: MonitorEntry) => {
-      monitorRepository.upsert(entry);
-      refresh();
-    },
-    [refresh],
-  );
-
-  const remove = useCallback(
-    (symbol: string) => {
-      monitorRepository.remove(symbol);
-      refresh();
-    },
-    [refresh],
-  );
-
-  const update = useCallback(
-    (entry: MonitorEntry) => {
-      monitorRepository.upsert(entry);
-      refresh();
-    },
-    [refresh],
-  );
+  const update = useCallback((entry: MonitorEntry) => {
+    upsertMonitorEntry(entry);
+  }, []);
 
   const isMonitored = useCallback(
     (symbol: string) => entries.some((e) => e.symbol === symbol),

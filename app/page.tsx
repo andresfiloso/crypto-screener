@@ -12,11 +12,10 @@ import { DashboardView } from "@/components/dashboard/dashboard-view";
 import { DashboardToolbar } from "@/components/dashboard/dashboard-toolbar";
 import { HealthIndicator } from "@/components/dashboard/health-indicator";
 import { Badge } from "@/components/ui/badge";
-import { SyncStatus } from "@/components/dashboard/sync-status";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function DashboardPage() {
-  const { data, error, lastFetchedAt } = useScreenerData();
+  const { data, error } = useScreenerData();
   const rules = useRules();
   const dashboards = useDashboards();
   const activeDashboard =
@@ -143,7 +142,6 @@ export default function DashboardPage() {
               Monitor
             </Link>
             {data && <HealthIndicator feeds={data.health} />}
-            <SyncStatus lastFetchedAt={lastFetchedAt} />
             <button
               onClick={play}
               title="Test pulse sound"

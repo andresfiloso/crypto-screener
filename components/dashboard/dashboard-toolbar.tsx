@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Pencil, Plus, Trash2, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -15,12 +16,14 @@ import {
   NativeSelectOption,
 } from "@/components/ui/native-select";
 import { cn } from "@/lib/utils";
+import { useMonitor } from "@/hooks/use-monitor";
 import {
   addWidget,
   createDashboard,
   deleteDashboard,
   renameDashboard,
   setActiveDashboard,
+  setAutoLayout,
 } from "@/lib/dashboards-store";
 import type {
   Dashboard,
@@ -47,6 +50,7 @@ function AddWidgetDialog({
   onClose: () => void;
 }) {
   const [choice, setChoice] = useState("");
+  const { entries } = useMonitor();
   const used = new Set(dashboard.widgets.map((w) => `${w.type}:${w.refId}`));
 
   const options = [
@@ -58,8 +62,11 @@ function AddWidgetDialog({
       value: `ranking:${r.id}`,
       label: `Ranking — ${r.name}`,
     })),
-    { value: "monitor:", label: "Monitor" },
-  ].filter((o) => !used.has(o.value === "monitor:" ? "monitor:undefined" : o.value));
+    ...entries.map((e) => ({
+      value: `monitor:${e.symbol}`,
+      label: `Monitor — ${e.symbol} ${e.side}`,
+    })),
+  ].filter((o) => !used.has(o.value));
 
   function handleAdd() {
     const [type, refId] = choice.split(":");
@@ -154,24 +161,33 @@ export function DashboardToolbar({
       <div className="flex items-center gap-2">
         {editing && (
           <>
-            <Button variant="outline" size="sm" onClick={() => setAdding(true)}>
+            <Button variant="ghost" size="sm" onClick={() => setAdding(true)}>
               <Plus /> Add widget
             </Button>
-            <Button variant="outline" size="sm" onClick={handleRename}>
+            <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Switch
+                size="sm"
+                checked={active.autoLayout !== false}
+                onCheckedChange={(on) => setAutoLayout(active.id, on)}
+              />
+              Auto layout
+            </label>
+            <Button variant="ghost" size="sm" onClick={handleRename}>
               Rename
             </Button>
             <Button
-              variant="destructive"
-              size="sm"
+              variant="ghost"
+              size="icon-sm"
               disabled={config.dashboards.length <= 1}
               onClick={handleDelete}
+              aria-label="Delete dashboard"
             >
-              <Trash2 /> Delete
+              <Trash2 />
             </Button>
           </>
         )}
         <Button
-          variant={editing ? "default" : "outline"}
+          variant={editing ? "default" : "ghost"}
           size="sm"
           onClick={onToggleEditing}
         >

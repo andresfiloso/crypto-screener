@@ -128,3 +128,10 @@
     @apply font-sans;
   }
 }
+/* react-grid-layout drop placeholder: dashed zone instead of the default red fill. */
+.react-grid-item.react-grid-placeholder {
+  background: color-mix(in oklch, var(--primary) 10%, transparent);
+  border: 2px dashed var(--primary);
+  border-radius: var(--radius-xl);
+  opacity: 1;
+}

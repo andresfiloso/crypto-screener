@@ -124,4 +124,30 @@ export const SCANS: ScanDefinition[] = [
     },
     notification: { soundEnabled: true },
   },
+  {
+    id: "rsi-bullish-divergence-1h",
+    name: "RSI Bullish Divergence 1h",
+    description: "Bullish RSI 14 divergence confirmed within the last 3 candles on 1h",
+    conditions: [
+      { indicator: "RSI_DIV_BULL", timeframe: "1h", operator: "<=", value: 3 },
+    ],
+    tradeIdea: {
+      side: "long",
+      rationale: "Price made a lower low while RSI made a higher low",
+    },
+    notification: { soundEnabled: true },
+  },
+  {
+    id: "rsi-bearish-divergence-1h",
+    name: "RSI Bearish Divergence 1h",
+    description: "Bearish RSI 14 divergence confirmed within the last 3 candles on 1h",
+    conditions: [
+      { indicator: "RSI_DIV_BEAR", timeframe: "1h", operator: "<=", value: 3 },
+    ],
+    tradeIdea: {
+      side: "short",
+      rationale: "Price made a higher high while RSI made a lower high",
+    },
+    notification: { soundEnabled: true },
+  },
 ];

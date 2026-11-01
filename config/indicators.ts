@@ -1,6 +1,8 @@
 export const INDICATOR_IDS = [
   "RSI_14",
   "RSI_3",
+  "RSI_DIV_BULL",
+  "RSI_DIV_BEAR",
   "EMA_20",
   "EMA_50",
   "EMA_200",

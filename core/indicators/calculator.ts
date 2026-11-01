@@ -1,6 +1,7 @@
 import { RSI, EMA, MACD, ATR } from "technicalindicators";
 import type { Candle } from "@/types/candle";
 import type { IndicatorValues } from "@/types/indicators";
+import { detectRsiDivergence } from "@/core/indicators/divergence";
 
 /** Calculate all supported indicators from a candle history.
  *  Returns only the latest value for each indicator.
@@ -18,7 +19,9 @@ export function calculateIndicators(candles: Candle[]): IndicatorValues {
   const last = <T>(arr: T[]): T | undefined => arr[arr.length - 1];
 
   // RSI 14
-  const rsi14 = last(RSI.calculate({ values: closes, period: 14 }));
+  const rsi14Series = RSI.calculate({ values: closes, period: 14 });
+  const rsi14 = last(rsi14Series);
+  const divergence = detectRsiDivergence(candles, rsi14Series);
 
   // RSI 3
   const rsi3 = last(RSI.calculate({ values: closes, period: 3 }));
@@ -69,6 +72,8 @@ export function calculateIndicators(candles: Candle[]): IndicatorValues {
   return {
     RSI_14: rsi14,
     RSI_3: rsi3,
+    RSI_DIV_BULL: divergence.bullish,
+    RSI_DIV_BEAR: divergence.bearish,
     EMA_20: ema20,
     EMA_50: ema50,
     EMA_200: ema200,

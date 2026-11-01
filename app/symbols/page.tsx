@@ -6,11 +6,10 @@ import { SymbolManager } from "@/components/symbols/symbol-manager";
 import { SymbolTable } from "@/components/symbols/symbol-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { HealthIndicator } from "@/components/dashboard/health-indicator";
-import { SyncStatus } from "@/components/dashboard/sync-status";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function SymbolsPage() {
-  const { data, loading, error, lastFetchedAt } = useScreenerData();
+  const { data, loading, error } = useScreenerData();
 
   return (
     <div className="min-h-screen bg-background">
@@ -27,7 +26,6 @@ export default function SymbolsPage() {
           </div>
           <div className="flex items-center gap-3">
             {data && <HealthIndicator feeds={data.health} />}
-            <SyncStatus lastFetchedAt={lastFetchedAt} />
             <ThemeToggle />
           </div>
         </div>
