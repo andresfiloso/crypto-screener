@@ -29,6 +29,10 @@ export class MarketStateStore {
     }
   }
 
+  removeSymbol(symbol: string): void {
+    this.symbols.delete(symbol);
+  }
+
   /** Replace the full candle history for a symbol/timeframe (used during hydration). */
   setCandles(symbol: string, timeframe: Timeframe, candles: Candle[]): void {
     const state = this.getOrCreate(symbol);

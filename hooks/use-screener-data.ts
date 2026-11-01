@@ -1,39 +1,53 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useEffect, useMemo, useSyncExternalStore } from "react";
 import type { ScreenerResponse } from "@/types/api";
+import { EMPTY_SNAPSHOT, getEngine } from "@/core/engine/screener-engine";
+import { runAllScans } from "@/core/scans/scan-evaluator";
+import { runAllCombinedRankings } from "@/core/rankings/ranking-evaluator";
+import { useSymbols } from "@/lib/symbols-store";
+import { isEnabled, useRules } from "@/lib/rules-store";
 
-const POLL_INTERVAL_MS = 10_000;
+const subscribe = (listener: () => void) => getEngine().subscribe(listener);
+const getSnapshot = () => getEngine().getSnapshot();
+const getServerSnapshot = () => EMPTY_SNAPSHOT;
 
+/**
+ * Live market data for the user's symbols, with the user's rules applied.
+ * Everything runs in the browser; symbols and rules come from localStorage.
+ */
 export function useScreenerData() {
-  const [data, setData] = useState<ScreenerResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [lastFetchedAt, setLastFetchedAt] = useState<number | null>(null);
-
-  const fetchData = useCallback(async () => {
-    try {
-      const res = await fetch("/api/screener");
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json: ScreenerResponse = await res.json();
-      setData(json);
-      setLastFetchedAt(Date.now());
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const symbols = useSymbols();
+  const rules = useRules();
+  const snapshot = useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    getServerSnapshot,
+  );
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchData();
-    const interval = setInterval(fetchData, POLL_INTERVAL_MS);
-    return () => clearInterval(interval);
-  }, [fetchData]);
+    getEngine().setSymbols(symbols);
+  }, [symbols]);
 
-  return { data, loading, error, lastFetchedAt, refetch: fetchData };
+  const data = useMemo<ScreenerResponse | null>(() => {
+    if (snapshot.updatedAt === 0) return null;
+    return {
+      status: snapshot.status,
+      symbols: snapshot.symbols,
+      health: snapshot.health,
+      updatedAt: snapshot.updatedAt,
+      scans: runAllScans(rules.scans.filter(isEnabled), snapshot.symbols),
+      rankings: runAllCombinedRankings(
+        rules.rankings.filter(isEnabled),
+        snapshot.symbols,
+      ),
+    };
+  }, [snapshot, rules]);
+
+  return {
+    data,
+    loading: data === null,
+    error: null as string | null,
+    lastFetchedAt: data ? data.updatedAt : null,
+  };
 }
-
-export { POLL_INTERVAL_MS };

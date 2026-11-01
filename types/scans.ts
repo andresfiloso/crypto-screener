@@ -33,6 +33,8 @@ export interface ScanDefinition {
   group?: string;
   /** Default notification settings for this scan. */
   notification?: ScanNotification;
+  /** Disabled rules are kept but not evaluated. Undefined means enabled. */
+  enabled?: boolean;
 }
 
 export interface RankingDefinition {
@@ -52,6 +54,8 @@ export interface CombinedRankingDefinition {
   timeframe: Timeframe;
   /** How many symbols to show at each end (top & bottom). Default 5. */
   limit?: number;
+  /** Disabled rules are kept but not evaluated. Undefined means enabled. */
+  enabled?: boolean;
 }
 
 export interface CombinedRankingResult {

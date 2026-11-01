@@ -1,5 +1,11 @@
 import type { Candle, Timeframe } from "@/types/candle";
 
+export type KlineCallback = (
+  timeframe: Timeframe,
+  candle: Candle,
+  isFinal: boolean,
+) => void;
+
 export interface MarketDataProvider {
   getHistoricalCandles(
     symbol: string,
@@ -7,11 +13,14 @@ export interface MarketDataProvider {
     limit: number,
   ): Promise<Candle[]>;
 
-  subscribeKlines(
+  /** Subscribe to every given timeframe of a symbol over one connection. */
+  subscribeSymbol(
     symbol: string,
-    timeframe: Timeframe,
-    callback: (candle: Candle, isFinal: boolean) => void,
+    timeframes: Timeframe[],
+    callback: KlineCallback,
   ): void;
+
+  unsubscribeSymbol(symbol: string): void;
 
   unsubscribeAll(): void;
 }

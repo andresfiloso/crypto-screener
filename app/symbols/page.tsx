@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useScreenerData } from "@/hooks/use-screener-data";
+import { SymbolManager } from "@/components/symbols/symbol-manager";
 import { SymbolTable } from "@/components/symbols/symbol-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { HealthIndicator } from "@/components/dashboard/health-indicator";
@@ -33,6 +34,8 @@ export default function SymbolsPage() {
       </header>
 
       <main className="mx-auto max-w-7xl px-4 py-8">
+        <SymbolManager />
+
         {error && (
           <div className="mb-6 rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">
             {error}

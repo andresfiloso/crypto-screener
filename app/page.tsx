@@ -6,20 +6,23 @@ import { Volume2, VolumeX, AudioWaveform, Activity } from "lucide-react";
 import { useScreenerData } from "@/hooks/use-screener-data";
 import { usePulseSound } from "@/hooks/use-pulse-sound";
 import { useSoundSettings } from "@/hooks/use-sound-settings";
-import { SCANS } from "@/config/scans";
-import { useMonitor } from "@/hooks/use-monitor";
-import { ScanCard } from "@/components/dashboard/scan-card";
-import { MonitorCard } from "@/components/monitor/monitor-card";
-import { RankingCard } from "@/components/dashboard/ranking-card";
+import { useRules } from "@/lib/rules-store";
+import { useDashboards } from "@/lib/dashboards-store";
+import { DashboardView } from "@/components/dashboard/dashboard-view";
+import { DashboardToolbar } from "@/components/dashboard/dashboard-toolbar";
 import { HealthIndicator } from "@/components/dashboard/health-indicator";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { SyncStatus } from "@/components/dashboard/sync-status";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function DashboardPage() {
-  const { data, loading, error, lastFetchedAt } = useScreenerData();
-  const { entries, remove, update } = useMonitor();
+  const { data, error, lastFetchedAt } = useScreenerData();
+  const rules = useRules();
+  const dashboards = useDashboards();
+  const activeDashboard =
+    dashboards.dashboards.find((d) => d.id === dashboards.activeId) ??
+    dashboards.dashboards[0];
+  const [editing, setEditing] = useState(false);
   const { play } = usePulseSound();
   const {
     masterSoundEnabled,
@@ -49,8 +52,8 @@ export default function DashboardPage() {
     for (const scan of data.scans) {
       const prev = prevMatchesRef.current.get(scan.scanId) ?? new Set<string>();
       const scanDefault =
-        SCANS.find((s) => s.id === scan.scanId)?.notification?.soundEnabled ??
-        true;
+        rules.scans.find((s) => s.id === scan.scanId)?.notification
+          ?.soundEnabled ?? true;
 
       if (!isFirstLoad && isScanSoundEnabled(scan.scanId, scanDefault)) {
         for (const symbol of scan.matches) {
@@ -94,7 +97,7 @@ export default function DashboardPage() {
 
       newTimersRef.current.push(timer);
     }
-  }, [data?.scans, isScanSoundEnabled, play]);
+  }, [data?.scans, rules.scans, isScanSoundEnabled, play]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -125,6 +128,12 @@ export default function DashboardPage() {
               className="hover:text-foreground transition-colors"
             >
               Symbols
+            </Link>
+            <Link
+              href="/rules"
+              className="hover:text-foreground transition-colors"
+            >
+              Rules
             </Link>
             <Link
               href="/monitor"
@@ -162,130 +171,28 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-8 space-y-10">
+      <main className="mx-auto max-w-7xl px-4 py-8 space-y-8">
         {error && (
           <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">
             {error}
           </div>
         )}
-        <section>
-          <h2 className="mb-4 text-base font-medium">Opportunity Scans</h2>
-          {loading ? (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <Skeleton key={i} className="h-32 rounded-xl" />
-              ))}
-            </div>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {data?.scans
-                .filter((s) => !s.group)
-                .map((scan) => {
-                  const scanDefault =
-                    SCANS.find((s) => s.id === scan.scanId)?.notification
-                      ?.soundEnabled ?? true;
-                  return (
-                    <ScanCard
-                      key={scan.scanId}
-                      scan={scan}
-                      soundEnabled={isScanSoundEnabled(
-                        scan.scanId,
-                        scanDefault,
-                      )}
-                      onToggleSound={() =>
-                        toggleScanSound(scan.scanId, scanDefault)
-                      }
-                      symbols={data?.symbols}
-                      newSymbols={newMatches[scan.scanId]}
-                    />
-                  );
-                })}
-            </div>
-          )}
-        </section>
-        <section>
-          <h2 className="mb-4 text-base font-medium">Custom Scans</h2>
-          {loading ? (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {Array.from({ length: 2 }).map((_, i) => (
-                <Skeleton key={i} className="h-32 rounded-xl" />
-              ))}
-            </div>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {data?.scans
-                .filter((s) => s.group === "custom")
-                .map((scan) => {
-                  const scanDefault =
-                    SCANS.find((s) => s.id === scan.scanId)?.notification
-                      ?.soundEnabled ?? true;
-                  return (
-                    <ScanCard
-                      key={scan.scanId}
-                      scan={scan}
-                      soundEnabled={isScanSoundEnabled(
-                        scan.scanId,
-                        scanDefault,
-                      )}
-                      onToggleSound={() =>
-                        toggleScanSound(scan.scanId, scanDefault)
-                      }
-                      symbols={data?.symbols}
-                      newSymbols={newMatches[scan.scanId]}
-                    />
-                  );
-                })}
-            </div>
-          )}
-        </section>
-        <section>
-          <h2 className="mb-4 text-base font-medium">Rankings</h2>
-          {loading ? (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <Skeleton key={i} className="h-48 rounded-xl" />
-              ))}
-            </div>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {data?.rankings.map((ranking) => (
-                <RankingCard key={ranking.rankingId} ranking={ranking} />
-              ))}
-            </div>
-          )}
-        </section>
-        {entries.length > 0 && (
-          <section>
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-base font-medium flex items-center gap-2">
-                <Activity className="size-4" />
-                Monitor
-                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                  {entries.length}
-                </span>
-              </h2>
-              <Link
-                href="/monitor"
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Ver todos →
-              </Link>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {entries.map((entry) => (
-                <MonitorCard
-                  key={entry.symbol}
-                  entry={entry}
-                  symbolState={data?.symbols.find(
-                    (s) => s.symbol === entry.symbol,
-                  )}
-                  onRemove={() => remove(entry.symbol)}
-                  onUpdate={update}
-                />
-              ))}
-            </div>
-          </section>
-        )}
+        <DashboardToolbar
+          config={dashboards}
+          active={activeDashboard}
+          rules={rules}
+          editing={editing}
+          onToggleEditing={() => setEditing((e) => !e)}
+        />
+        <DashboardView
+          dashboard={activeDashboard}
+          data={data}
+          scanDefs={rules.scans}
+          editing={editing}
+          isScanSoundEnabled={isScanSoundEnabled}
+          toggleScanSound={toggleScanSound}
+          newMatches={newMatches}
+        />
       </main>
 
       <footer className="border-t mt-10">

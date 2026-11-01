@@ -40,6 +40,12 @@ export class FeedHealthTracker {
     }
   }
 
+  removeSymbol(symbol: string): void {
+    for (const [k, feed] of this.feeds) {
+      if (feed.symbol === symbol) this.feeds.delete(k);
+    }
+  }
+
   getAll(): FeedHealth[] {
     const now = Date.now();
     return Array.from(this.feeds.values()).map((f) => ({
